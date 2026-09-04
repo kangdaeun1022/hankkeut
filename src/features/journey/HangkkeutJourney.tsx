@@ -4,7 +4,6 @@ import {
   useCallback,
   useMemo,
   useState,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { AnimatePresence, MotionConfig, motion } from "motion/react";
 import {
@@ -121,6 +120,14 @@ function CheckIcon() {
   );
 }
 
+function CrossIcon() {
+  return (
+    <svg aria-hidden="true" className="small-icon" viewBox="0 0 24 24" fill="none">
+      <path d="m7 7 10 10M17 7 7 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function Header({ onReset }: { onReset: () => void }) {
   return (
     <header className="site-header">
@@ -216,37 +223,38 @@ function ProductStage({ onNext }: { onNext: () => void }) {
     <div className="stage stage-product">
       <section className="hero-grid">
         <div className="hero-copy">
-          <p className="eyebrow">HANKEUT / STEP-DOWN ELS</p>
+          <p className="eyebrow">가상 Step-down ELS · 90초 이해 점검</p>
           <h1>
             이 상품,
             <br />
             <span className="highlight-word">이해하셨나요?</span>
           </h1>
           <p className="hero-description">
-            가상의 Step-down ELS 핵심 조건을 먼저 확인해보세요. 읽은 뒤에는
-            상품을 어떻게 이해했는지 자신의 말로 설명하게 됩니다.
+            세 지수를 평균으로 볼지, 가장 낮은 값으로 볼지. 실제 계약의 한 단어가
+            만기 결과를 어떻게 바꾸는지 직접 확인해보세요.
           </p>
           <div className="hero-actions">
-            <PrimaryButton onClick={onNext}>한끗 찾아보기</PrimaryButton>
+            <PrimaryButton onClick={onNext}>내 이해 확인하기</PrimaryButton>
             <span className="time-note">약 90초 · 로그인 없이 체험</span>
           </div>
         </div>
 
         <div className="concept-card contract-snapshot" aria-label="가상 Step-down ELS 계약 요약">
           <div className="concept-topline">
-            <span className="mini-label">CONTRACT SNAPSHOT</span>
-            <span className="concept-dots"><i /><i /><i /></span>
+            <span className="mini-label">계약 핵심 조건</span>
+            <span className="contract-page">01 / 01</span>
           </div>
           <div className="contract-title">
-            <span>SIMULATED PRODUCT</span>
-            <strong>STEP-DOWN ELS</strong>
+            <span>가상상품 · 만기 기준</span>
+            <strong>Step-down ELS 001</strong>
           </div>
-          <div className="contract-line"><span>기초자산</span><strong>KOSPI · S&amp;P · EURO</strong></div>
-          <div className="contract-line"><span>만기</span><strong>3 YEARS</strong></div>
+          <div className="contract-line"><span>기초자산</span><strong>세 지수</strong></div>
           <div className="contract-line"><span>만기 상환 기준</span><strong>80% 이상</strong></div>
-          <div className="contract-line contract-line-emphasis"><span>평가 기준</span><strong>WORST(A, B, C)</strong></div>
+          <div className="contract-line"><span>기준 충족 시</span><strong>원금 + 8%</strong></div>
+          <div className="contract-line contract-line-emphasis"><span>평가 기준</span><strong>가장 낮은 값</strong></div>
           <div className="contract-prompt">
-            <SparkIcon /> 세 자산의 평균이 아닌, 가장 낮은 값이 기준입니다.
+            <span className="contract-note-mark" aria-hidden="true" />
+            세 자산의 평균이 아닌, 가장 낮은 값이 기준입니다.
           </div>
         </div>
       </section>
@@ -369,7 +377,7 @@ function InputStage({
               onClick={() => setText(SAMPLE_TEXT)}
               type="button"
             >
-              샘플 문장 채우기
+              데모 문장 불러오기
             </button>
           </div>
           {error ? <p className="form-error" role="alert">{error}</p> : null}
@@ -404,6 +412,7 @@ function AnalysisStage({
 }) {
   const { analysis, meta } = result;
   const isUnclear = analysis.status !== "SUPPORTED";
+  const hasMismatch = analysis.understanding === "AVERAGE";
   const keyword = analysis.evidence.includes("평균")
     ? "평균적으로"
     : analysis.evidence || "판단 기준";
@@ -414,8 +423,8 @@ function AnalysisStage({
       <section className="analysis-card">
         <div className="analysis-orbit"><SparkIcon /></div>
         <div className="analysis-heading">
-          <p className="section-kicker">CONTRACT X-RAY / AI INTERPRETATION</p>
-          <h1>{isUnclear ? "한끗을 단정하지 않았어요" : "문장에서 한 단어를 찾았어요"}</h1>
+          <p className="section-kicker">AI가 찾은 이해의 근거</p>
+          <h1>{isUnclear ? "한끗을 단정하지 않았어요" : hasMismatch ? "계약과 다른 기준을 찾았어요" : "계약 기준을 정확히 찾았어요"}</h1>
           <div className={`mode-badge mode-${meta.mode}`}>
             <span />
             {meta.mode === "live" ? "생성형 AI 분석" : "안전 데모 분석"}
@@ -433,8 +442,8 @@ function AnalysisStage({
           </div>
         ) : (
           <>
-            <div className="sentence-decomposition" aria-label="AI가 사용자 문장에서 찾은 핵심 표현">
-              <p className="decomposition-label">YOUR WORDS, DECOMPOSED</p>
+            <div className={`sentence-decomposition ${hasMismatch ? "is-mismatch" : "is-match"}`} aria-label="AI가 사용자 문장에서 찾은 핵심 표현">
+              <p className="decomposition-label">입력 문장에서 찾은 표현</p>
               <motion.p
                 animate="visible"
                 initial="hidden"
@@ -459,14 +468,17 @@ function AnalysisStage({
                 initial={{ opacity: 0, scale: 0.94 }}
                 transition={{ delay: 0.55, type: "spring", stiffness: 280, damping: 22 }}
               >
-                <span>⚠</span>
-                <div><strong>UNDERSTANDING MISMATCH</strong><small>AI가 “{keyword}”를 핵심 표현으로 잡았습니다.</small></div>
+                <span>{hasMismatch ? <CrossIcon /> : <CheckIcon />}</span>
+                <div>
+                  <strong>{hasMismatch ? "계약 기준과 차이" : "계약 기준과 일치"}</strong>
+                  <small>AI가 “{keyword}”를 핵심 표현으로 잡았습니다.</small>
+                </div>
               </motion.div>
             </div>
             <div className="analysis-summary">
               <div className="rule-chip">
-                <span>확인한 규칙</span>
-                <strong>Worst-of 판단 기준</strong>
+                <span>{hasMismatch ? "실제 계약 규칙" : "확인된 계약 규칙"}</span>
+                <strong>가장 낮은 값으로 판단</strong>
               </div>
               <p>{analysis.summary}</p>
             </div>
@@ -488,7 +500,7 @@ function AnalysisStage({
             {meta.notice ? <p className="mode-notice">{meta.notice}</p> : null}
             <div className="form-action">
               <PrimaryButton onClick={onNext}>
-                실제 계약조건과 비교하기
+                {hasMismatch ? "실제 계약조건과 비교하기" : "같은 기준으로 결과 확인하기"}
               </PrimaryButton>
             </div>
           </>
@@ -509,15 +521,12 @@ function DiffStage({
 }) {
   const hasMismatch = analysis.understanding === "AVERAGE";
   const [split, setSplit] = useState(50);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const updateSplit = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const next = ((event.clientX - bounds.left) / bounds.width) * 100;
-    setSplit(Math.min(82, Math.max(18, next)));
-  };
-
   const actualDominates = split < 42;
+  const myMeasure = hasMismatch ? "세 자산의 평균" : "가장 낮은 자산";
+  const myRule = hasMismatch ? "(A + B + C) / 3" : "WORST(A, B, C)";
+  const myLevel = hasMismatch ? "82.7%" : "61.0%";
+  const myOutcome = hasMismatch ? "+8.0%" : "-39.0%";
+  const connectorCopy = hasMismatch ? "해석 차이" : "같은 해석";
 
   return (
     <div className="stage stage-centered stage-wide one-difference-stage">
@@ -527,34 +536,23 @@ function DiffStage({
           <div>
             <p className="section-kicker">THE ONE-DIFFERENCE EXPERIENCE</p>
             <h1>
-              평균 <em>│</em> 최저값
+              {hasMismatch ? <>평균 <em>│</em> 최저값</> : <>최저값 <em>=</em> 최저값</>}
             </h1>
           </div>
-          <p>가운데 선을 움직여, 내가 이해한 세계와 실제 계약의 세계를 비교해보세요.</p>
+          <p>{hasMismatch ? "비교선을 움직여, 내가 이해한 기준과 실제 계약 기준을 나란히 확인해보세요." : "내가 이해한 기준과 실제 계약 기준이 같은지 확인해보세요."}</p>
         </div>
 
-        <div
-          className={`contract-compare ${isDragging ? "is-dragging" : ""}`}
-          onPointerDown={(event) => {
-            event.currentTarget.setPointerCapture(event.pointerId);
-            setIsDragging(true);
-            updateSplit(event);
-          }}
-          onPointerMove={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) updateSplit(event);
-          }}
-          onPointerUp={(event) => {
-            if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
-            setIsDragging(false);
-          }}
-        >
+        <div className={`contract-compare ${hasMismatch ? "is-mismatch" : "is-match"}`}>
           <article className="compare-world compare-world-mine">
-            <span className="world-kicker">MY UNDERSTANDING</span>
-            <p className="world-caption">세 자산의 평균</p>
-            <strong className="world-rule">(A + B + C) / 3</strong>
-            <motion.span animate={{ opacity: actualDominates ? 0.48 : 1 }} className="world-number">82.7%</motion.span>
-            <span className="world-result world-result-profit">✓ 수익 조건 충족</span>
-            <small>평균 기준이면 +8% 수익</small>
+            <span className="world-kicker">내가 이해한 기준</span>
+            <p className="world-caption">{myMeasure}</p>
+            <strong className="world-rule">{myRule}</strong>
+            <motion.span animate={{ opacity: actualDominates ? 0.48 : 1 }} className="world-number">{myLevel}</motion.span>
+            <span className={`world-result ${hasMismatch ? "world-result-profit" : "world-result-loss"}`}>
+              {hasMismatch ? <CheckIcon /> : <CrossIcon />}
+              {hasMismatch ? "수익 조건 충족" : "조건 미충족"}
+            </span>
+            <small>{hasMismatch ? "평균 기준이면 +8% 수익" : "최저값 기준이면 -39% 손실"}</small>
           </article>
 
           <article
@@ -562,11 +560,11 @@ function DiffStage({
             style={{ clipPath: `inset(0 0 0 ${split}%)` }}
           >
             <div className="contract-world-content">
-              <span className="world-kicker">ACTUAL CONTRACT</span>
+              <span className="world-kicker">실제 계약 기준</span>
               <p className="world-caption">가장 낮은 자산</p>
               <strong className="world-rule">WORST(A, B, C)</strong>
               <motion.span animate={{ opacity: actualDominates ? 1 : 0.72 }} className="world-number">61.0%</motion.span>
-              <span className="world-result world-result-loss">✕ 조건 미충족</span>
+              <span className="world-result world-result-loss"><CrossIcon /> 조건 미충족</span>
               <small>Worst-of 기준이면 -39% 손실</small>
             </div>
           </article>
@@ -574,25 +572,39 @@ function DiffStage({
           <motion.div animate={{ left: `${split}%` }} className="compare-divider" transition={{ type: "spring", stiffness: 360, damping: 34 }}>
             <span>한끗</span>
             <i />
-            <button aria-label="비교선 움직이기" tabIndex={-1} type="button">↔</button>
+            <span className="compare-handle" aria-hidden="true">↔</span>
           </motion.div>
+          <label className="compare-control" htmlFor="comparison-split">
+            <span>비교선 위치</span>
+            <input
+              aria-describedby="comparison-help"
+              aria-valuetext={`내 이해 ${Math.round(split)}%, 실제 계약 ${100 - Math.round(split)}% 보기`}
+              id="comparison-split"
+              max="82"
+              min="18"
+              onChange={(event) => setSplit(Number(event.target.value))}
+              type="range"
+              value={split}
+            />
+          </label>
         </div>
+        <p className="compare-help" id="comparison-help">드래그하거나 방향키로 비교선을 움직일 수 있어요.</p>
 
-        <div className="outcome-flip" data-actual={actualDominates}>
-          <div><span>MY EXPECTATION</span><strong>+8.0%</strong></div>
+        <div className={`outcome-flip ${hasMismatch ? "is-mismatch" : "is-match"}`} data-actual={actualDominates}>
+          <div><span>내 이해의 결과</span><strong>{myOutcome}</strong></div>
           <i>│</i>
-          <div><span>ACTUAL CONTRACT</span><strong>-39.0%</strong></div>
-          <p>한 단어의 차이가 결과를 바꿨습니다.</p>
+          <div><span>실제 계약 결과</span><strong>-39.0%</strong></div>
+          <p>{hasMismatch ? "판단 기준 한 단어가 결과를 바꿨습니다." : "판단 기준을 정확히 이해했습니다."}</p>
         </div>
 
         <div className="xray-grid">
           <article className="xray-card xray-user">
             <span>01 / 고객이 이해한 내용</span>
             <p>“{analysis.evidence || "세 자산의 평균이 기준 이상이면 수익을 받는 상품"}”</p>
-            <strong>평균적으로</strong>
+            <strong>{hasMismatch ? "평균적으로" : "가장 낮은 값"}</strong>
           </article>
-          <div className="xray-connector" aria-hidden="true">
-            <span>SEMANTIC CONFLICT</span><i /><SparkIcon />
+          <div className={`xray-connector ${hasMismatch ? "is-mismatch" : "is-match"}`} aria-hidden="true">
+            <span>{connectorCopy}</span><i />{hasMismatch ? <CrossIcon /> : <CheckIcon />}
           </div>
           <article className="xray-card xray-contract">
             <span>02 / 실제 계약 조건</span>
@@ -604,9 +616,9 @@ function DiffStage({
         <div className="engine-flow">
           <div className="engine-flow-heading"><ShieldIcon /><span>EXPLAINABLE RULE ENGINE</span><small>AI는 오해 후보만 탐지하고, 계산은 규칙이 수행합니다.</small></div>
           <ol>
-            <li><span>AI INTERPRETATION</span><strong>{hasMismatch ? "AVERAGE detected" : "WORST-OF detected"}</strong></li>
-            <li><span>CONTRACT RULE</span><strong>Worst(KOSPI, S&P, EURO) = 61%</strong></li>
-            <li><span>BARRIER CHECK</span><strong>61% &lt; 80%</strong></li>
+            <li><span>AI 해석</span><strong>{hasMismatch ? "평균 기준 감지" : "최저값 기준 감지"}</strong></li>
+            <li><span>계약 규칙</span><strong>Worst(KOSPI, S&amp;P, EURO) = 61%</strong></li>
+            <li><span>80% 기준 확인</span><strong>61% &lt; 80%</strong></li>
             <li className="engine-loss"><span>ACTUAL RESULT</span><strong>LOSS CONDITION</strong></li>
           </ol>
         </div>
@@ -714,10 +726,12 @@ function ScenarioStage({
 function ResultStage({
   prediction,
   result,
+  onBack,
   onReset,
 }: {
   prediction: PredictedOutcome;
   result: CalculationResponse;
+  onBack: () => void;
   onReset: () => void;
 }) {
   const { evaluation, comparison } = result;
@@ -738,6 +752,7 @@ function ResultStage({
 
   return (
     <div className="stage stage-centered stage-wide passport-stage">
+      <BackButton onClick={onBack} label="예상 결과 다시 고르기" />
       <section className="understanding-passport">
         <div className="passport-topline"><span>한끗 REPORT</span><span>{result.meta.rulesVersion}</span></div>
         <div className="passport-heading">
@@ -764,6 +779,12 @@ function ResultStage({
         <div className="passport-results">
           <div><span>MY PREDICTION</span><strong>{predictionLabels[prediction]}</strong></div>
           <div><span>ACTUAL CONTRACT</span><strong>{resultTitle}</strong><small>원금 100만원 가정 시 {redemptionWon}원 상환 · {evaluation.returnRateDisplay}</small></div>
+        </div>
+
+        <div className="next-check-card">
+          <span>다음 계약서에서 확인할 한 가지</span>
+          <strong>여러 기초자산이면, 평균인지 가장 낮은 값인지부터 확인하세요.</strong>
+          <p>수익률보다 먼저 판단 기준과 기준선을 읽는 것이 이번 가상 사례의 핵심입니다.</p>
         </div>
 
         <div className="passport-footer">
@@ -907,6 +928,7 @@ export function HangkkeutJourney() {
       case "RESULT":
         return prediction && calculationResult ? (
           <ResultStage
+            onBack={() => moveTo("SCENARIO")}
             onReset={reset}
             prediction={prediction}
             result={calculationResult}
