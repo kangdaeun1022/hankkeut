@@ -29,7 +29,6 @@ const SAMPLE_TEXT =
   "세 지수는 평균적으로 보는 걸로 이해했어요. 하나가 많이 떨어져도 다른 두 지수가 괜찮으면 되는 거 아닌가요?";
 
 type JourneyStep =
-  | "WELCOME"
   | "PRODUCT"
   | "INPUT"
   | "ANALYSIS"
@@ -212,69 +211,23 @@ function PrimaryButton({
   );
 }
 
-function WelcomeStage({ onStart }: { onStart: () => void }) {
-  return (
-    <section className="welcome-stage" aria-labelledby="welcome-title">
-      <motion.p
-        animate={{ opacity: 1, y: 0 }}
-        className="welcome-index"
-        initial={{ opacity: 0, y: 12 }}
-        transition={{ delay: 0.08, duration: 0.45 }}
-      >
-        HANKEUT / 01
-      </motion.p>
-      <motion.h1
-        animate={{ opacity: 1, y: 0, letterSpacing: "-0.07em" }}
-        id="welcome-title"
-        initial={{ opacity: 0, y: 28, letterSpacing: "-0.02em" }}
-        transition={{ delay: 0.16, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-      >
-        이 상품,
-        <br />
-        이해하셨나요?
-      </motion.h1>
-      <motion.div
-        animate={{ opacity: 1, y: 0 }}
-        className="welcome-actions"
-        initial={{ opacity: 0, y: 16 }}
-        transition={{ delay: 0.42, duration: 0.5 }}
-      >
-        <button className="welcome-answer welcome-answer-primary" onClick={onStart} type="button">
-          네, 이해했습니다 <ArrowIcon />
-        </button>
-        <button className="welcome-answer" onClick={onStart} type="button">
-          잘 모르겠습니다
-        </button>
-      </motion.div>
-      <motion.p
-        animate={{ opacity: 1 }}
-        className="welcome-footnote"
-        initial={{ opacity: 0 }}
-        transition={{ delay: 0.68, duration: 0.45 }}
-      >
-        설명 여부가 아니라, 이해 여부를 확인합니다.
-      </motion.p>
-    </section>
-  );
-}
-
 function ProductStage({ onNext }: { onNext: () => void }) {
   return (
     <div className="stage stage-product">
       <section className="hero-grid">
         <div className="hero-copy">
-          <p className="eyebrow">좋아요. 그럼 바로 확인해볼게요.</p>
+          <p className="eyebrow">HANKEUT / STEP-DOWN ELS</p>
           <h1>
-            이 계약의 수익 조건을
+            이 상품,
             <br />
-            당신의 말로 <span className="highlight-word">설명해보세요.</span>
+            <span className="highlight-word">이해하셨나요?</span>
           </h1>
           <p className="hero-description">
-            먼저 계약을 보여드릴게요. 잠깐 읽은 뒤, 어떤 조건에서 수익이나 손실이
-            발생한다고 이해했는지 직접 말해 주세요.
+            가상의 Step-down ELS 핵심 조건을 먼저 확인해보세요. 읽은 뒤에는
+            상품을 어떻게 이해했는지 자신의 말로 설명하게 됩니다.
           </p>
           <div className="hero-actions">
-            <PrimaryButton onClick={onNext}>내 말로 설명하기</PrimaryButton>
+            <PrimaryButton onClick={onNext}>한끗 찾아보기</PrimaryButton>
             <span className="time-note">약 90초 · 로그인 없이 체험</span>
           </div>
         </div>
@@ -288,12 +241,12 @@ function ProductStage({ onNext }: { onNext: () => void }) {
             <span>SIMULATED PRODUCT</span>
             <strong>STEP-DOWN ELS</strong>
           </div>
-          <div className="contract-line"><span>기초자산</span><strong>A · B · C</strong></div>
+          <div className="contract-line"><span>기초자산</span><strong>KOSPI · S&amp;P · EURO</strong></div>
           <div className="contract-line"><span>만기</span><strong>3 YEARS</strong></div>
-          <div className="contract-line"><span>수익 조건</span><strong>80% 이상</strong></div>
-          <div className="contract-line contract-line-emphasis"><span>판단 기준</span><strong>WORST(A, B, C)</strong></div>
+          <div className="contract-line"><span>만기 상환 기준</span><strong>80% 이상</strong></div>
+          <div className="contract-line contract-line-emphasis"><span>평가 기준</span><strong>WORST(A, B, C)</strong></div>
           <div className="contract-prompt">
-            <SparkIcon /> 이 상품의 수익 조건을 본인의 말로 설명해 주세요.
+            <SparkIcon /> 세 자산의 평균이 아닌, 가장 낮은 값이 기준입니다.
           </div>
         </div>
       </section>
@@ -385,10 +338,10 @@ function InputStage({
       <section className="prompt-card">
         <div className="step-symbol"><span>말</span></div>
         <p className="section-kicker">YOUR INTERPRETATION</p>
-        <h1>수익 조건을 어떻게 이해했나요?</h1>
+        <h1>이 상품에서 언제 손실이 발생한다고 이해하셨나요?</h1>
         <p className="stage-description">
-          정답을 맞히려 하지 말고, 세 자산이 어떤 기준을 충족해야 한다고
-          이해했는지 그대로 적어주세요.
+          정답을 맞히려 하지 말고, 손실이 발생하는 조건을 어떻게 이해했는지
+          그대로 적어주세요.
         </p>
 
         <form
@@ -659,7 +612,7 @@ function DiffStage({
         </div>
 
         <div className="form-action">
-          <PrimaryButton onClick={onNext}>새로운 상황에서 확인하기</PrimaryButton>
+          <PrimaryButton onClick={onNext}>가상 상황에서 결과 예상하기</PrimaryButton>
         </div>
       </section>
     </div>
@@ -790,21 +743,16 @@ function ResultStage({
         <div className="passport-heading">
           <div>
             <p>STEP-DOWN ELS</p>
-            <h1>{isVerified ? "UNDERSTANDING VERIFIED" : "UNDERSTANDING REVIEW"}</h1>
+            <h1>이번에 확인한 한끗</h1>
           </div>
-          <span className={isVerified ? "passport-status is-verified" : "passport-status"}>{isVerified ? "VERIFIED" : "REVIEW NEEDED"}</span>
-        </div>
-
-        <div className="passport-score">
-          <div><span>이해 상태</span><strong>{isVerified ? "92%" : "68%"}</strong></div>
-          <i><motion.span animate={{ width: isVerified ? "92%" : "68%" }} initial={{ width: "0%" }} transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }} /></i>
+          <span className={isVerified ? "passport-status is-verified" : "passport-status"}>{isVerified ? "WORST-OF 확인" : "WORST-OF 재확인"}</span>
         </div>
 
         <div className="passport-checks">
-          <span>✓ 조기상환 조건 <small>이번 시나리오 범위 밖</small></span>
-          <span>✓ Worst-of 기준 <small>가장 낮은 {worstAsset} {evaluation.worstLevelDisplay}</small></span>
-          <span>✓ 손실발생 조건 <small>61% &lt; 80%</small></span>
-          <span>△ 만기상환 구조 <small>원금의 {evaluation.redemptionDisplay} 상환</small></span>
+          <span>핵심 확인 조건 <small>Worst-of · 가장 낮은 {worstAsset} {evaluation.worstLevelDisplay}</small></span>
+          <span className={isVerified ? "is-verified" : "is-review"}>예상과 실제 비교 <small>{isVerified ? "같은 결과를 예상했어요" : "결과 차이를 확인했어요"}</small></span>
+          <span>손실 발생 조건 <small>{evaluation.worstLevelDisplay} &lt; 80%</small></span>
+          <span className="is-out-of-scope">조기상환 · Knock-In <small>이번 MVP 검증 범위 밖</small></span>
         </div>
 
         <div className="passport-difference">
@@ -819,7 +767,7 @@ function ResultStage({
         </div>
 
         <div className="passport-footer">
-          <p><SparkIcon /> Correction {isVerified ? "verified" : "in progress"}</p>
+          <p><SparkIcon /> 상품 전체 이해도를 점수로 평가하지 않습니다.</p>
           <button className="restart-button" onClick={onReset} type="button">처음부터 다시 보기 <ArrowIcon /></button>
         </div>
       </section>
@@ -828,7 +776,7 @@ function ResultStage({
 }
 
 export function HangkkeutJourney() {
-  const [step, setStep] = useState<JourneyStep>("WELCOME");
+  const [step, setStep] = useState<JourneyStep>("PRODUCT");
   const [text, setText] = useState(SAMPLE_TEXT);
   const [analysisResult, setAnalysisResult] = useState<AnalyzeResponse | null>(null);
   const [prediction, setPrediction] = useState<PredictedOutcome | null>(null);
@@ -850,7 +798,7 @@ export function HangkkeutJourney() {
     setPrediction(null);
     setCalculationResult(null);
     setLoading(false);
-    moveTo("WELCOME");
+    moveTo("PRODUCT");
   }, [moveTo]);
 
   const analyze = useCallback(async () => {
@@ -915,8 +863,6 @@ export function HangkkeutJourney() {
 
   const stage = useMemo(() => {
     switch (step) {
-      case "WELCOME":
-        return <WelcomeStage onStart={() => moveTo("PRODUCT")} />;
       case "PRODUCT":
         return <ProductStage onNext={() => moveTo("INPUT")} />;
       case "INPUT":
@@ -986,7 +932,7 @@ export function HangkkeutJourney() {
       <div className="app-frame">
         <Header onReset={reset} />
         <main className="shell main-content">
-          {step !== "WELCOME" ? <Progress currentStep={step} /> : null}
+          <Progress currentStep={step} />
         <AnimatePresence initial={false} mode="wait">
           <motion.div
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}

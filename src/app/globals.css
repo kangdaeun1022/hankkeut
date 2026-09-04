@@ -3845,6 +3845,16 @@ body {
   background: rgba(255, 255, 255, 0.025);
 }
 
+.passport-checks span.is-review {
+  color: #ffb0a8;
+  background: var(--red-soft);
+}
+
+.passport-checks span.is-out-of-scope {
+  color: #c2c2c8;
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .passport-checks small {
   color: #797981;
   font-size: 10px;
@@ -3942,7 +3952,7 @@ body {
   align-items: center;
   gap: 6px;
   margin: 0;
-  color: #a6d965;
+  color: #a6a6ad;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 10px;
 }
