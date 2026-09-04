@@ -30,8 +30,8 @@
 ## 기술 구성
 
 - Next.js App Router + React + TypeScript
-- `POST /api/analyze`: OpenAI Responses API의 Structured Outputs로 사용자 이해 분석
-- `POST /api/calculate`: 서버에 고정된 상품 및 시나리오만 pure Rule Engine으로 계산
+- `POST /api/analyze`: Gemini `generateContent`의 JSON Structured Output으로 사용자 이해 분석
+- Rule Engine: 고정된 상품 및 시나리오만 pure 금융 계산 로직으로 처리
 - Zod: 요청 및 AI 응답 검증
 - Vitest: 금융 경계값, 입력 검증, fallback 분석 테스트
 - Vercel에 그대로 배포 가능한 단일 프로젝트
@@ -53,8 +53,8 @@ npm run dev
 실제 생성형 AI 분석을 사용하려면 `.env.local`에 서버 전용 키를 설정합니다.
 
 ```dotenv
-OPENAI_API_KEY=your_api_key
-OPENAI_MODEL=gpt-5.4-mini
+GEMINI_API_KEY=your_api_key
+GEMINI_MODEL=gemini-2.5-flash-lite
 ```
 
 브라우저에 노출되는 `NEXT_PUBLIC_` 변수에는 API 키를 넣지 마세요.
@@ -73,12 +73,12 @@ npm run build
 
 ## 배포
 
-Vercel에서 이 디렉터리를 Next.js 프로젝트로 가져온 뒤 `OPENAI_API_KEY`와 선택 사항인 `OPENAI_MODEL`을 서버 환경변수로 등록하면 됩니다. 별도 DB, 회원가입, 외부 금융데이터 연결은 필요하지 않습니다.
+Vercel에서 이 디렉터리를 Next.js 프로젝트로 가져온 뒤 `GEMINI_API_KEY`와 선택 사항인 `GEMINI_MODEL`을 서버 환경변수로 등록하면 됩니다. 별도 DB, 회원가입, 외부 금융데이터 연결은 필요하지 않습니다.
 
 ## 안전 원칙
 
 - 생성형 AI는 자연어 의미 분석과 근거 추출만 수행합니다.
 - Worst-of, 상환 기준, 손익률, 상환금은 Rule Engine만 계산합니다.
 - AI의 `evidence`는 사용자 원문의 정확한 부분 문자열인지 서버에서 다시 확인합니다.
-- 입력 원문은 애플리케이션 로그에 남기지 않고 OpenAI 요청도 `store: false`로 보냅니다.
+- 입력 원문은 애플리케이션 로그에 남기지 않으며 Gemini API 요청은 서버에서만 전송합니다.
 - 본 상품과 수치는 이해검증을 위한 가상 사례이며 투자 권유가 아닙니다.

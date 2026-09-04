@@ -14,7 +14,6 @@ import type {
   PredictedOutcome,
   PredictionComparison,
 } from "@/domain/els/types";
-import { analyzeWithSafeDemo } from "@/server/ai/fallback";
 import type {
   AnalyzeResponse,
   UnderstandingAnalysis,
@@ -757,13 +756,14 @@ export function HangkkeutJourney() {
     setLoading(true);
     setError(null);
     try {
-      setAnalysisResult({
-        analysis: analyzeWithSafeDemo(trimmed),
-        meta: {
-          mode: "demo",
-          notice: "MVP 데모 모드: 평균과 Worst-of 이해 차이만 확인합니다.",
-        },
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: trimmed }),
       });
+      const payload = (await response.json()) as AnalyzeResponse & { error?: string };
+      if (!response.ok) throw new Error(payload.error || "분석을 완료하지 못했습니다.");
+      setAnalysisResult(payload);
       moveTo("ANALYSIS");
     } catch (requestError) {
       setError(

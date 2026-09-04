@@ -1,14 +1,40 @@
-import OpenAI from "openai";
-import { zodTextFormat } from "openai/helpers/zod";
+import { GoogleGenAI } from "@google/genai";
 import { analyzeWithSafeDemo, hasValidEvidence } from "./fallback";
 import { ANALYSIS_INSTRUCTIONS, buildAnalysisInput } from "./prompt";
 import {
   understandingAnalysisSchema,
   type AnalyzeResponse,
-  type UnderstandingAnalysis,
 } from "./schema";
 
-const DEFAULT_MODEL = "gpt-5.4-mini";
+const DEFAULT_MODEL = "gemini-2.5-flash-lite";
+
+const geminiAnalysisSchema = {
+  type: "object",
+  properties: {
+    ruleId: {
+      type: "string",
+      enum: ["R02_REFERENCE_ASSET", "UNRESOLVED"],
+    },
+    understanding: {
+      type: "string",
+      enum: ["AVERAGE", "WORST_OF", "UNCLEAR"],
+    },
+    evidence: { type: "string" },
+    summary: { type: "string" },
+    status: {
+      type: "string",
+      enum: ["SUPPORTED", "AMBIGUOUS", "ABSTAINED"],
+    },
+  },
+  required: [
+    "ruleId",
+    "understanding",
+    "evidence",
+    "summary",
+    "status",
+  ],
+  additionalProperties: false,
+} as const;
 
 function safeDemoResponse(text: string, notice: string): AnalyzeResponse {
   return {
@@ -23,7 +49,7 @@ function safeDemoResponse(text: string, notice: string): AnalyzeResponse {
 export async function analyzeUnderstanding(
   text: string,
 ): Promise<AnalyzeResponse> {
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return safeDemoResponse(
@@ -32,29 +58,50 @@ export async function analyzeUnderstanding(
     );
   }
 
-  const model = process.env.OPENAI_MODEL || DEFAULT_MODEL;
+  const model = process.env.GEMINI_MODEL || DEFAULT_MODEL;
 
   try {
-    const client = new OpenAI({ apiKey });
-    const response = await client.responses.parse(
-      {
-        model,
-        store: false,
-        instructions: ANALYSIS_INSTRUCTIONS,
-        input: buildAnalysisInput(text),
-        text: {
-          format: zodTextFormat(
-            understandingAnalysisSchema,
-            "contract_understanding",
-          ),
-        },
+    const client = new GoogleGenAI({ apiKey });
+    const response = await client.models.generateContent({
+      model,
+      contents: buildAnalysisInput(text),
+      config: {
+        systemInstruction: ANALYSIS_INSTRUCTIONS,
+        responseMimeType: "application/json",
+        responseJsonSchema: geminiAnalysisSchema,
+        temperature: 0,
+        maxOutputTokens: 400,
+        abortSignal: AbortSignal.timeout(10_000),
       },
-      { signal: AbortSignal.timeout(10_000) },
-    );
+    });
 
-    const parsed = response.output_parsed as UnderstandingAnalysis | null;
+    if (!response.text) {
+      return safeDemoResponse(
+        text,
+        "Gemini 응답이 비어 있어 안전 데모 분석으로 전환했습니다.",
+      );
+    }
 
-    if (!parsed || !hasValidEvidence(text, parsed)) {
+    let candidate: unknown;
+    try {
+      candidate = JSON.parse(response.text);
+    } catch {
+      return safeDemoResponse(
+        text,
+        "Gemini 응답 형식을 확인할 수 없어 안전 데모 분석으로 전환했습니다.",
+      );
+    }
+
+    const parsed = understandingAnalysisSchema.safeParse(candidate);
+
+    if (!parsed.success) {
+      return safeDemoResponse(
+        text,
+        "AI 근거를 원문에서 확인할 수 없어 안전 데모 분석으로 전환했습니다.",
+      );
+    }
+
+    if (!hasValidEvidence(text, parsed.data)) {
       return safeDemoResponse(
         text,
         "AI 근거를 원문에서 확인할 수 없어 안전 데모 분석으로 전환했습니다.",
@@ -62,7 +109,7 @@ export async function analyzeUnderstanding(
     }
 
     return {
-      analysis: parsed,
+      analysis: parsed.data,
       meta: {
         mode: "live",
         model,
@@ -71,7 +118,7 @@ export async function analyzeUnderstanding(
   } catch {
     return safeDemoResponse(
       text,
-      "AI 연결이 원활하지 않아 안전 데모 분석으로 전환했습니다.",
+      "Gemini 연결이 원활하지 않아 안전 데모 분석으로 전환했습니다.",
     );
   }
 }
