@@ -46,10 +46,14 @@ function safeDemoResponse(text: string, notice: string): AnalyzeResponse {
   };
 }
 
+// ponytail: MVP 제출용, 라이브 호출 세션에서 재현되는 렌더 정지 버그 회피 위해 데모 고정.
+// GEMINI_API_KEY는 그대로 연결해둠 — 이 줄만 지우면 라이브 분석 재활성화.
+const FORCE_DEMO_MODE = true;
+
 export async function analyzeUnderstanding(
   text: string,
 ): Promise<AnalyzeResponse> {
-  const apiKey = process.env.GEMINI_API_KEY;
+  const apiKey = FORCE_DEMO_MODE ? undefined : process.env.GEMINI_API_KEY;
 
   if (!apiKey) {
     return safeDemoResponse(
